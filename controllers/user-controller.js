@@ -3,10 +3,10 @@ const { User } = db
 const bcrypt = require('bcryptjs')
 
 const userController = {
-  signupPage: (req, res) => {
+  signUpPage: (req, res) => {
     return res.render('signup')
   },
-  signup: async (req, res, next) => {
+  signUp: async (req, res, next) => {
     try {
       // Error : 兩次輸入的密碼不同
       if (req.body.password !== req.body.passwordCheck) throw new Error('Password don\'t match !')
@@ -26,6 +26,18 @@ const userController = {
     } catch (err) {
       next(err)
     }
+  },
+  signInPage: (req, res) => {
+    return res.render('signin')
+  },
+  signIn: (req, res) => {
+    req.flash('success_message', '成功登入！')
+    res.redirect('/restaurant')
+  },
+  logout: (req, res) => {
+    req.flash('success_message', '成功登出！')
+    req.logout()
+    res.redirect('/signin')
   }
 }
 
