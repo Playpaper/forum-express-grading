@@ -1,4 +1,5 @@
 const { Restaurant } = require('../models')
+const { localFileHandler } = require('../helpers/file-helpers')
 const adminController = {
   getRestaurants: async (req, res, next) => {
     try {
@@ -24,7 +25,9 @@ const adminController = {
     try {
       const { name, tel, address, openingHours, description } = req.body
       if (!name) throw new Error('Restaurant name is required !')
-      await Restaurant.create({ name, tel, address, openingHours, description })
+      const { file } = req // 把檔案取出來，也可以寫成 const file = req.file
+      const filePath = await localFileHandler(file) // 把取出的檔案傳給 file-helper 處理後
+      await Restaurant.create({ name, tel, address, openingHours, description, image: filePath || null })
       req.flash('success_messages', 'Restaurant created !')
       res.redirect('/admin/restaurants')
     } catch (err) {
@@ -44,11 +47,16 @@ const adminController = {
     try {
       const { name, tel, address, openingHours, description } = req.body
       if (!name) throw new Error('Restaurant name is required!')
-      const restaurant = await Restaurant.findByPk(req.params.id)
-      await restaurant.update({ name, tel, address, openingHours, description })
+      const { file } = req
+      const [filePath, restaurant] = await Promise.all([
+        localFileHandler(file),
+        Restaurant.findByPk(req.params.id)
+      ])
+      await restaurant.update({ name, tel, address, openingHours, description, image: filePath || null })
+      req.flash('success_messages', 'Restaurant updated !')
       // await restaurant.set({ name, tel, address, openingHours, description })
       // await restaurant.save()
-      return res.redirect('/admin/restaurant')
+      return res.redirect(`/admin/restaurants/${req.params.id}`)
     } catch (err) {
       next(err)
     }
