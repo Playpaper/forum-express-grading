@@ -15,7 +15,8 @@ passport.use(new LocalStrategy(
   async (req, email, password, cb) => {
     const user = await User.findOne({ where: { email } })
     // can't find user
-    if (!user) return cb(null, false, req.flash('error_message', '帳號或密碼輸入錯誤！'))
+    console.log('signin !')
+    if (!user) return cb(null, false, req.flash('error_messages', '帳號或密碼輸入錯誤！'))
     // not match to db password
     const comparePassword = await bcrypt.compare(password, user.password)
     if (!comparePassword) return cb(null, false, req.flash('error_messages', '帳號或密碼輸入錯誤！'))

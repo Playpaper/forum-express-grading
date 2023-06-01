@@ -1,5 +1,5 @@
 const { Restaurant } = require('../models')
-const { localFileHandler } = require('../helpers/file-helpers')
+const { imgurFileHandler } = require('../helpers/file-helpers')
 const adminController = {
   getRestaurants: async (req, res, next) => {
     try {
@@ -19,14 +19,18 @@ const adminController = {
     }
   },
   creatRestaurant: (req, res) => {
-    return res.render('admin/create-restaurant')
+    const restaurant = req.session.formData
+      ? { ...req.session.formData }
+      : {}
+    delete req.session.formData // 清除 session 資料
+    return res.render('admin/create-restaurant', { restaurant })
   },
   postRestaurant: async (req, res, next) => {
     try {
-      const { name, tel, address, openingHours, description } = req.body
+      const { name, tel, address, openingHours, description } = req.session.formData = req.body
       if (!name) throw new Error('Restaurant name is required !')
       const { file } = req // 把檔案取出來，也可以寫成 const file = req.file
-      const filePath = await localFileHandler(file) // 把取出的檔案傳給 file-helper 處理後
+      const filePath = await imgurFileHandler(file) // 把取出的檔案傳給 file-helper 處理後
       await Restaurant.create({ name, tel, address, openingHours, description, image: filePath || null })
       req.flash('success_messages', 'Restaurant created !')
       res.redirect('/admin/restaurants')
@@ -49,7 +53,7 @@ const adminController = {
       if (!name) throw new Error('Restaurant name is required!')
       const { file } = req
       const [filePath, restaurant] = await Promise.all([
-        localFileHandler(file),
+        imgurFileHandler(file),
         Restaurant.findByPk(req.params.id)
       ])
       await restaurant.update({ name, tel, address, openingHours, description, image: filePath || null })
